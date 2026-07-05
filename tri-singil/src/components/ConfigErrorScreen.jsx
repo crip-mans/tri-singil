@@ -18,7 +18,8 @@ function ConfigErrorScreen() {
           Tri-Singil isn't configured yet
         </h1>
         <p style={{ color: '#4b5563', lineHeight: 1.5 }}>
-          Missing <code>VITE_SUPABASE_URL</code> and/or <code>VITE_SUPABASE_ANON_KEY</code>.
+          <code>VITE_SUPABASE_URL</code> and/or <code>VITE_SUPABASE_ANON_KEY</code> are
+          missing or invalid (the URL must start with <code>https://</code>).
           Set them in your <code>.env</code> file (local) or your Vercel project's
           Environment Variables (production), then reload the page.
         </p>
