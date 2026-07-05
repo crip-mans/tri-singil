@@ -15,8 +15,8 @@ export default defineConfig({
         name: 'Tri-Singil',
         short_name: 'TriSingil',
         description: 'Fixed-fare tricycle fare estimator for the Philippines',
-        theme_color: '#F4511E',
-        background_color: '#FFF8E1',
+        theme_color: '#F4A63A',
+        background_color: '#FFF3E2',
         display: 'standalone',
         start_url: '/',
         icons: [

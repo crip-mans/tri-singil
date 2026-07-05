@@ -1,5 +1,4 @@
-const PASSENGER_TYPES = [
-  { value: 'regular', label: 'Regular' },
+const CHIP_TYPES = [
   { value: 'student', label: 'Student' },
   { value: 'senior', label: 'Senior' },
   { value: 'pwd', label: 'PWD' },
@@ -7,27 +6,26 @@ const PASSENGER_TYPES = [
 
 function PassengerTypeToggle({ value, onChange }) {
   return (
-    <div
-      role="radiogroup"
-      aria-label="Passenger type"
-      className="grid grid-cols-4 gap-1 rounded-full bg-gray-100 p-1"
-    >
-      {PASSENGER_TYPES.map((type) => (
-        <button
-          key={type.value}
-          type="button"
-          role="radio"
-          aria-checked={value === type.value}
-          onClick={() => onChange(type.value)}
-          className={
-            value === type.value
-              ? 'rounded-full bg-orange-600 py-2 text-xs font-semibold text-white shadow-sm transition'
-              : 'rounded-full py-2 text-xs font-medium text-gray-500 transition hover:text-gray-700'
-          }
-        >
-          {type.label}
-        </button>
-      ))}
+    <div className="flex gap-2" role="group" aria-label="Passenger type">
+      {CHIP_TYPES.map((type) => {
+        const active = value === type.value
+        return (
+          <button
+            key={type.value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(active ? 'regular' : type.value)}
+            className={
+              'rounded-[10px] px-4 py-2 text-xs font-semibold transition-colors ' +
+              (active
+                ? 'bg-marigold text-white'
+                : 'bg-white text-slate shadow-[0_4px_12px_rgba(180,140,60,0.10)]')
+            }
+          >
+            {type.label}
+          </button>
+        )
+      })}
     </div>
   )
 }

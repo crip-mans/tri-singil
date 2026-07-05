@@ -24,8 +24,8 @@ function dotIcon(color) {
   })
 }
 
-const ORIGIN_ICON = dotIcon('#16a34a')
-const DESTINATION_ICON = dotIcon('#F4511E')
+const ORIGIN_ICON = dotIcon('#F4A63A')
+const DESTINATION_ICON = dotIcon('#E8583D')
 
 function markerIconFor(label) {
   if (label === 'Origin') return ORIGIN_ICON
@@ -78,7 +78,7 @@ function MapView({ center, zoom, zones = [], markers = [], onPointSelect }) {
           <Polygon
             key={zone.id}
             positions={positions}
-            pathOptions={{ color: '#F4511E', weight: 1, fillOpacity: 0.08 }}
+            pathOptions={{ color: '#1F8A85', weight: 1, fillOpacity: 0.08 }}
           />
         )
       })}
