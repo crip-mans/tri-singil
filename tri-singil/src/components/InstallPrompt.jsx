@@ -41,20 +41,18 @@ function InstallPrompt() {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-between gap-3 bg-orange-600 px-4 py-3 text-white shadow-lg">
-      <p className="text-sm">
-        Add Tri-Singil to your home screen for quick, offline-ready fare lookups.
-      </p>
+    <div className="fixed inset-x-4 top-20 z-[1100] flex items-center justify-between gap-3 rounded-2xl bg-gray-900/95 px-4 py-3 text-white shadow-xl">
+      <p className="text-sm">Add Tri-Singil to your home screen.</p>
       <div className="flex shrink-0 gap-2">
         <button
           onClick={handleInstall}
-          className="rounded bg-white px-3 py-1.5 text-sm font-semibold text-orange-600"
+          className="rounded-full bg-orange-600 px-3 py-1.5 text-sm font-semibold"
         >
           Install
         </button>
         <button
           onClick={handleDismiss}
-          className="rounded border border-white/60 px-3 py-1.5 text-sm"
+          className="rounded-full border border-white/30 px-3 py-1.5 text-sm"
         >
           Not now
         </button>

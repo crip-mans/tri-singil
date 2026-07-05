@@ -7,7 +7,11 @@ const PASSENGER_TYPES = [
 
 function PassengerTypeToggle({ value, onChange }) {
   return (
-    <div role="radiogroup" aria-label="Passenger type" className="flex justify-center gap-2">
+    <div
+      role="radiogroup"
+      aria-label="Passenger type"
+      className="grid grid-cols-4 gap-1 rounded-full bg-gray-100 p-1"
+    >
       {PASSENGER_TYPES.map((type) => (
         <button
           key={type.value}
@@ -17,8 +21,8 @@ function PassengerTypeToggle({ value, onChange }) {
           onClick={() => onChange(type.value)}
           className={
             value === type.value
-              ? 'rounded border border-blue-600 bg-blue-600 px-3 py-1.5 text-sm text-white'
-              : 'rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700'
+              ? 'rounded-full bg-orange-600 py-2 text-xs font-semibold text-white shadow-sm transition'
+              : 'rounded-full py-2 text-xs font-medium text-gray-500 transition hover:text-gray-700'
           }
         >
           {type.label}

@@ -7,13 +7,31 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 
 // Vite doesn't resolve Leaflet's default marker icon URLs, so point them
-// at the bundled assets directly.
+// at the bundled assets directly. Used as a fallback for unrecognized labels.
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 })
+
+function dotIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:18px;height:18px;border-radius:9999px;background:${color};border:3px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.45);"></div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+  })
+}
+
+const ORIGIN_ICON = dotIcon('#16a34a')
+const DESTINATION_ICON = dotIcon('#F4511E')
+
+function markerIconFor(label) {
+  if (label === 'Origin') return ORIGIN_ICON
+  if (label === 'Destination') return DESTINATION_ICON
+  return undefined
+}
 
 function polygonToPositions(boundary) {
   if (!boundary || boundary.type !== 'Polygon') return null
@@ -39,7 +57,12 @@ function Recenter({ center }) {
 
 function MapView({ center, zoom, zones = [], markers = [], onPointSelect }) {
   return (
-    <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
+    <MapContainer
+      center={center}
+      zoom={zoom}
+      zoomControl={false}
+      style={{ height: '100%', width: '100%' }}
+    >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -55,13 +78,13 @@ function MapView({ center, zoom, zones = [], markers = [], onPointSelect }) {
           <Polygon
             key={zone.id}
             positions={positions}
-            pathOptions={{ color: '#2563eb', weight: 1, fillOpacity: 0.1 }}
+            pathOptions={{ color: '#F4511E', weight: 1, fillOpacity: 0.08 }}
           />
         )
       })}
 
       {markers.map((marker, index) => (
-        <Marker key={index} position={marker.position}>
+        <Marker key={index} position={marker.position} icon={markerIconFor(marker.label)}>
           {marker.label ? <Popup>{marker.label}</Popup> : null}
         </Marker>
       ))}

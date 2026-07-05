@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
+import { pointOnFeature } from '@turf/turf'
 import MapView from '../components/MapView'
 import PassengerTypeToggle from '../components/PassengerTypeToggle'
 import FareBreakdown from '../components/FareBreakdown'
+import LocationSearch from '../components/LocationSearch'
 import { fetchZones, fetchFareMatrix, fetchModifiers } from '../lib/zonesApi'
 import { calculateFare } from '../lib/fareEngine'
 import { useZoneLookup } from '../hooks/useZoneLookup'
@@ -35,6 +37,27 @@ function isNightTimeNow(modifiers) {
     return nowMinutes >= start && nowMinutes < end
   }
   return nowMinutes >= start || nowMinutes < end
+}
+
+function LocationIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="12" r="3" />
+      <path strokeLinecap="round" d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+    </svg>
+  )
+}
+
+function Spinner() {
+  return <span className="block h-4 w-4 animate-spin rounded-full border-2 border-orange-200 border-t-orange-600" />
+}
+
+// Guarantees a point that actually falls inside the zone's polygon (unlike a
+// plain geometric centroid, which can land outside on concave shapes).
+function pointFromZone(zone) {
+  if (!zone.boundary) return null
+  const [lng, lat] = pointOnFeature(zone.boundary).geometry.coordinates
+  return { lat, lng }
 }
 
 function Home() {
@@ -85,6 +108,19 @@ function Home() {
     }
   }
 
+  const handleSelectOriginZone = (zone) => {
+    const point = pointFromZone(zone)
+    if (!point) return
+    setOrigin(point)
+    setDestination(null)
+  }
+
+  const handleSelectDestinationZone = (zone) => {
+    const point = pointFromZone(zone)
+    if (!point) return
+    setDestination(point)
+  }
+
   const markers = useMemo(() => {
     const points = []
     if (origin) points.push({ position: [origin.lat, origin.lng], label: 'Origin' })
@@ -107,25 +143,9 @@ function Home() {
   }, [originZoneId, destinationZoneId, passengerType, fareMatrix, modifiers])
 
   return (
-    <div className="min-h-screen p-4">
-      <h1 className="text-4xl font-semibold text-center mb-4">Tri-Singil</h1>
-
-      {loadError && (
-        <p className="text-center text-red-600 mb-2">Failed to load zones: {loadError}</p>
-      )}
-
-      <div className="text-center mb-4">
-        <button
-          onClick={requestLocation}
-          disabled={gpsLoading}
-          className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
-        >
-          {gpsLoading ? 'Locating…' : 'Use my location'}
-        </button>
-        {gpsError && <p className="text-red-600 mt-2">{gpsError}</p>}
-      </div>
-
-      <div className="h-[500px] w-full mb-4">
+    <div className="relative h-screen w-screen overflow-hidden bg-gray-100">
+      {/* Full-screen map */}
+      <div className="absolute inset-0">
         <MapView
           center={mapCenter}
           zoom={DEFAULT_ZOOM}
@@ -135,29 +155,82 @@ function Home() {
         />
       </div>
 
-      <div className="text-center space-y-1 mb-6">
-        <p>Origin: {zoneLabel(origin, originZoneId, zones)}</p>
-        <p>Destination: {zoneLabel(destination, destinationZoneId, zones)}</p>
+      {/* Floating header */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[1000] flex items-start justify-between p-4">
+        <div className="pointer-events-auto rounded-full bg-white px-4 py-2 shadow-lg">
+          <span className="text-lg font-bold text-orange-600">Tri-Singil</span>
+        </div>
+        <button
+          onClick={requestLocation}
+          disabled={gpsLoading}
+          aria-label="Use my location"
+          className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-white text-orange-600 shadow-lg disabled:opacity-50"
+        >
+          {gpsLoading ? <Spinner /> : <LocationIcon />}
+        </button>
       </div>
 
-      {dataLoading ? (
-        <p className="text-center text-gray-500">Loading fare data…</p>
-      ) : !origin ? (
-        <p className="text-center text-gray-500">
-          Use your location or tap the map to set your origin.
-        </p>
-      ) : !destination ? (
-        <p className="text-center text-gray-500">Tap the map to set your destination.</p>
-      ) : !originZoneId || !destinationZoneId ? (
-        <p className="text-center text-gray-500">
-          Fare can't be calculated while a point is outside the known service area.
-        </p>
-      ) : (
-        <div className="space-y-4">
-          <PassengerTypeToggle value={passengerType} onChange={setPassengerType} />
-          <FareBreakdown result={fareResult} />
+      {/* Error toasts */}
+      {(loadError || gpsError) && (
+        <div className="absolute inset-x-4 top-20 z-[1000] space-y-2">
+          {loadError && (
+            <div className="rounded-2xl bg-red-600 px-4 py-2 text-sm text-white shadow-lg">
+              Failed to load zones: {loadError}
+            </div>
+          )}
+          {gpsError && (
+            <div className="rounded-2xl bg-red-600 px-4 py-2 text-sm text-white shadow-lg">
+              {gpsError}
+            </div>
+          )}
         </div>
       )}
+
+      {/* Bottom sheet */}
+      <div className="absolute inset-x-0 bottom-0 z-[1000] max-h-[65vh] overflow-y-auto rounded-t-3xl bg-white p-5 shadow-[0_-4px_24px_rgba(0,0,0,0.15)]">
+        <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-gray-300" />
+
+        <div className="mb-4 flex gap-3">
+          <div className="flex flex-col items-center pt-1">
+            <span className="h-3 w-3 shrink-0 rounded-full bg-green-600" />
+            <span className="my-1 w-px flex-1 bg-gray-300" />
+            <span className="h-3 w-3 shrink-0 rounded-full bg-orange-600" />
+          </div>
+          <div className="flex-1 space-y-4">
+            <LocationSearch
+              label="From"
+              value={zoneLabel(origin, originZoneId, zones)}
+              zones={zones}
+              onSelectZone={handleSelectOriginZone}
+            />
+            <LocationSearch
+              label="To"
+              value={zoneLabel(destination, destinationZoneId, zones)}
+              zones={zones}
+              onSelectZone={handleSelectDestinationZone}
+            />
+          </div>
+        </div>
+
+        {dataLoading ? (
+          <p className="text-center text-sm text-gray-500">Loading fare data…</p>
+        ) : !origin ? (
+          <p className="text-center text-sm text-gray-500">
+            Use your location or tap the map to set your origin.
+          </p>
+        ) : !destination ? (
+          <p className="text-center text-sm text-gray-500">Tap the map to set your destination.</p>
+        ) : !originZoneId || !destinationZoneId ? (
+          <p className="text-center text-sm text-gray-500">
+            Fare can't be calculated while a point is outside the known service area.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            <PassengerTypeToggle value={passengerType} onChange={setPassengerType} />
+            <FareBreakdown result={fareResult} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
