@@ -13,7 +13,7 @@ const DEFAULT_CENTER = [14.5995, 120.9842]
 const DEFAULT_ZOOM = 15
 
 function zoneLabel(point, zoneId, zones) {
-  if (!point) return 'Tap the map to select'
+  if (!point) return ''
   if (!zoneId) return 'Outside known service area'
   return zones.find((zone) => zone.id === zoneId)?.name ?? 'Outside known service area'
 }
@@ -143,94 +143,94 @@ function Home() {
   }, [originZoneId, destinationZoneId, passengerType, fareMatrix, modifiers])
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-gray-100">
-      {/* Full-screen map */}
-      <div className="absolute inset-0">
-        <MapView
-          center={mapCenter}
-          zoom={DEFAULT_ZOOM}
-          zones={zones}
-          markers={markers}
-          onPointSelect={handlePointSelect}
-        />
-      </div>
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-white px-4 py-3 shadow-sm">
+        <span className="text-xl font-bold text-orange-600">Tri-Singil</span>
+      </header>
 
-      {/* Floating header */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-[1000] flex items-start justify-between p-4">
-        <div className="pointer-events-auto rounded-full bg-white px-4 py-2 shadow-lg">
-          <span className="text-lg font-bold text-orange-600">Tri-Singil</span>
-        </div>
-        <button
-          onClick={requestLocation}
-          disabled={gpsLoading}
-          aria-label="Use my location"
-          className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-white text-orange-600 shadow-lg disabled:opacity-50"
-        >
-          {gpsLoading ? <Spinner /> : <LocationIcon />}
-        </button>
-      </div>
+      <main className="mx-auto max-w-md space-y-4 p-4">
+        {/* Input card — the first thing shown, modal-style */}
+        <div className="rounded-2xl bg-white p-5 shadow-xl">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-400">
+            Plan your trip
+          </h2>
 
-      {/* Error toasts */}
-      {(loadError || gpsError) && (
-        <div className="absolute inset-x-4 top-20 z-[1000] space-y-2">
-          {loadError && (
-            <div className="rounded-2xl bg-red-600 px-4 py-2 text-sm text-white shadow-lg">
-              Failed to load zones: {loadError}
+          {(loadError || gpsError) && (
+            <div className="mb-4 space-y-2">
+              {loadError && (
+                <div className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
+                  Failed to load zones: {loadError}
+                </div>
+              )}
+              {gpsError && (
+                <div className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{gpsError}</div>
+              )}
             </div>
           )}
-          {gpsError && (
-            <div className="rounded-2xl bg-red-600 px-4 py-2 text-sm text-white shadow-lg">
-              {gpsError}
+
+          <div className="mb-4 flex gap-3">
+            <div className="flex flex-col items-center pt-1">
+              <span className="h-3 w-3 shrink-0 rounded-full bg-green-600" />
+              <span className="my-1 w-px flex-1 bg-gray-300" />
+              <span className="h-3 w-3 shrink-0 rounded-full bg-orange-600" />
+            </div>
+            <div className="flex-1 space-y-4">
+              <div className="flex items-center gap-2">
+                <LocationSearch
+                  label="From"
+                  value={zoneLabel(origin, originZoneId, zones)}
+                  zones={zones}
+                  onSelectZone={handleSelectOriginZone}
+                />
+                <button
+                  onClick={requestLocation}
+                  disabled={gpsLoading}
+                  aria-label="Use my location"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-50 text-orange-600 disabled:opacity-50"
+                >
+                  {gpsLoading ? <Spinner /> : <LocationIcon />}
+                </button>
+              </div>
+              <LocationSearch
+                label="To"
+                value={zoneLabel(destination, destinationZoneId, zones)}
+                zones={zones}
+                onSelectZone={handleSelectDestinationZone}
+              />
+            </div>
+          </div>
+
+          {dataLoading ? (
+            <p className="text-center text-sm text-gray-500">Loading fare data…</p>
+          ) : !origin ? (
+            <p className="text-center text-sm text-gray-500">
+              Use your location or search above to set your origin.
+            </p>
+          ) : !destination ? (
+            <p className="text-center text-sm text-gray-500">Search above to set your destination.</p>
+          ) : !originZoneId || !destinationZoneId ? (
+            <p className="text-center text-sm text-gray-500">
+              Fare can't be calculated while a point is outside the known service area.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              <PassengerTypeToggle value={passengerType} onChange={setPassengerType} />
+              <FareBreakdown result={fareResult} />
             </div>
           )}
         </div>
-      )}
 
-      {/* Bottom sheet */}
-      <div className="absolute inset-x-0 bottom-0 z-[1000] max-h-[65vh] overflow-y-auto rounded-t-3xl bg-white p-5 shadow-[0_-4px_24px_rgba(0,0,0,0.15)]">
-        <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-gray-300" />
-
-        <div className="mb-4 flex gap-3">
-          <div className="flex flex-col items-center pt-1">
-            <span className="h-3 w-3 shrink-0 rounded-full bg-green-600" />
-            <span className="my-1 w-px flex-1 bg-gray-300" />
-            <span className="h-3 w-3 shrink-0 rounded-full bg-orange-600" />
-          </div>
-          <div className="flex-1 space-y-4">
-            <LocationSearch
-              label="From"
-              value={zoneLabel(origin, originZoneId, zones)}
-              zones={zones}
-              onSelectZone={handleSelectOriginZone}
-            />
-            <LocationSearch
-              label="To"
-              value={zoneLabel(destination, destinationZoneId, zones)}
-              zones={zones}
-              onSelectZone={handleSelectDestinationZone}
-            />
-          </div>
+        {/* Map — secondary, shown below the trip details */}
+        <div className="h-72 w-full overflow-hidden rounded-2xl shadow-lg">
+          <MapView
+            center={mapCenter}
+            zoom={DEFAULT_ZOOM}
+            zones={zones}
+            markers={markers}
+            onPointSelect={handlePointSelect}
+          />
         </div>
-
-        {dataLoading ? (
-          <p className="text-center text-sm text-gray-500">Loading fare data…</p>
-        ) : !origin ? (
-          <p className="text-center text-sm text-gray-500">
-            Use your location or tap the map to set your origin.
-          </p>
-        ) : !destination ? (
-          <p className="text-center text-sm text-gray-500">Tap the map to set your destination.</p>
-        ) : !originZoneId || !destinationZoneId ? (
-          <p className="text-center text-sm text-gray-500">
-            Fare can't be calculated while a point is outside the known service area.
-          </p>
-        ) : (
-          <div className="space-y-4">
-            <PassengerTypeToggle value={passengerType} onChange={setPassengerType} />
-            <FareBreakdown result={fareResult} />
-          </div>
-        )}
-      </div>
+      </main>
     </div>
   )
 }
