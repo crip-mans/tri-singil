@@ -1,4 +1,4 @@
-export const MIN_FARE = 10
+export const MIN_FARE = 20
 
 const DISCOUNT_TYPE_BY_PASSENGER = {
   student: 'student_discount',

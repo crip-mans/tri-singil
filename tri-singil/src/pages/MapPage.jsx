@@ -11,7 +11,8 @@ import { useZoneLookup } from '../hooks/useZoneLookup'
 import { useGeolocation } from '../hooks/useGeolocation'
 import { addHistoryEntry } from '../lib/history'
 
-const DEFAULT_CENTER = [14.5995, 120.9842]
+// Candon City, Ilocos Sur — the app's target service area.
+const DEFAULT_CENTER = [17.1972, 120.4502]
 const DEFAULT_ZOOM = 15
 
 function zoneName(zoneId, zones) {

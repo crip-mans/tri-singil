@@ -5,14 +5,14 @@ const fareMatrix = [
   {
     origin_zone_id: 'zone-a',
     destination_zone_id: 'zone-b',
-    base_fare: 15,
+    base_fare: 30,
     effective_date: '2026-01-01',
     is_active: true,
   },
   {
     origin_zone_id: 'zone-a',
     destination_zone_id: 'zone-e',
-    base_fare: 8,
+    base_fare: 15,
     effective_date: '2026-01-01',
     is_active: true,
   },
@@ -21,7 +21,7 @@ const fareMatrix = [
 const modifiers = [
   { type: 'night_surcharge', calculation: 'flat', value: 5, is_active: true },
   { type: 'student_discount', calculation: 'percent', value: 20, is_active: true },
-  { type: 'senior_discount', calculation: 'flat', value: 5, is_active: true },
+  { type: 'senior_discount', calculation: 'percent', value: 20, is_active: true },
 ]
 
 describe('calculateFare', () => {
@@ -36,8 +36,8 @@ describe('calculateFare', () => {
     })
 
     expect(result).toEqual({
-      fare: 15,
-      breakdown: { baseFare: 15, surcharge: 0, discount: 0, total: 15 },
+      fare: 30,
+      breakdown: { baseFare: 30, surcharge: 0, discount: 0, total: 30 },
     })
   })
 
@@ -64,7 +64,7 @@ describe('calculateFare', () => {
       modifiers,
     })
 
-    expect(result.fare).toBe(20)
+    expect(result.fare).toBe(35)
     expect(result.breakdown.surcharge).toBe(5)
   })
 
@@ -78,8 +78,8 @@ describe('calculateFare', () => {
       modifiers,
     })
 
-    expect(result.fare).toBe(12)
-    expect(result.breakdown.discount).toBe(3)
+    expect(result.fare).toBe(24)
+    expect(result.breakdown.discount).toBe(6)
   })
 
   it('stacks night surcharge and student discount', () => {
@@ -92,12 +92,12 @@ describe('calculateFare', () => {
       modifiers,
     })
 
-    expect(result.fare).toBe(17)
+    expect(result.fare).toBe(29)
     expect(result.breakdown).toEqual({
-      baseFare: 15,
+      baseFare: 30,
       surcharge: 5,
-      discount: 3,
-      total: 17,
+      discount: 6,
+      total: 29,
     })
   })
 
